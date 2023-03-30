@@ -1,0 +1,201 @@
+echo "# EvolutionProject" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/MonsterRally12/EvolutionProject.git
+git push -u origin main
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Creature Workspace</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+  </head>
+  <body>
+    <canvas id="theCanvas"></canvas>
+
+<script>
+  const canvas = document.getElementById('theCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 10000;
+  canvas.height = 10000;
+
+  
+  const backgroundImage = new Image();
+  backgroundImage.src = 'EvolutionProgramBackground.png';
+  
+  backgroundImage.onload = function() {
+    console.log("image drawn succesfully");
+    drawBackground
+  };
+
+  backgroundImage.onerror = function() {
+    console.log('Error loading image:EvolutionProgramBackground.png');
+  };
+  
+  function drawBackground() {
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  }
+
+    
+
+
+
+
+
+
+
+    let movetest = 0;
+    let idnum = 0;
+    let allCreatures = [];
+    const dragConstant = 100;
+    
+
+  class creature {
+    constructor(id, x, y, radius, color, dna) {
+      this.id = id;
+      this.color = color;
+      this.x = x;
+      this.y = y;
+      this.radius = radius;
+      this.color = color;
+      this.dna = dna;
+      this.vx = 0;
+      this.vy = 0;
+      this.colorhex = null;
+      //adds itself to the creature array
+      allCreatures.push(this);
+      this.Child = null;
+
+      
+      //converts dna into hexadecimal and then sets this.color
+      this.colorhex = "#" + ((this.dna[0] * this.dna[1]) - 1).toString(16) + ((this.dna[2] * this.dna[3]) - 1).toString(16) + ((this.dna[4] * this.dna[5]) - 1).toString(16) + ((this.dna[6] * this.dna[7]) - 1).toString(16) + ((this.dna[8] * this.dna[9]) - 1).toString(16) + ((this.dna[10] * this.dna[11]) - 1).toString(16);
+      this.color = this.colorhex;
+    }
+    
+    
+    draw(ctx) {
+     ctx.save(); // save the current canvas state
+
+     // translate the canvas by this.x and this.y
+     ctx.translate(this.x, this.y);
+
+     ctx.beginPath();
+     ctx.arc(0, 0, this.radius, 0, 2*Math.PI); // use 0,0 as center of the arc
+     ctx.strokeStyle = 'black';
+     ctx.stroke();
+     ctx.fillStyle = this.color;
+     ctx.fill();
+
+     ctx.restore();
+    }
+
+    move() {
+      //basic movement
+       this.x += this.vx;
+       this.y += this.vy;
+
+      //adds friction
+       if (this.vx < 0) {
+          setTimeout(this.vx = (this.vx + (Math.abs(this.vx) / dragConstant)), 100);
+       } else if (this.vx > 0) {
+          setTimeout(this.vx = (this.vx - this.vx / dragConstant), 100);
+       };
+      if (this.vy < 0) {
+          setTimeout(this.vy = (this.vy + (Math.abs(this.vy) / dragConstant)), 100);
+       } else if (this.vy > 0) {
+          setTimeout(this.vy = (this.vy - this.vy / dragConstant), 100);
+       };
+
+       //prevents excess data usage
+       if (Math.abs(this.vx) < 0.001) {
+         this.vx = 0;
+       }
+      if (Math.abs(this.vy) < 0.001) {
+         this.vy = 0;
+       }
+
+      //tests if it worked
+      if (movetest == 1) {
+        console.log(this.vx);
+      }
+    }
+    
+    Procreate() {
+      idnum++;
+      this.Child = "c" + (idnum);
+      // creates a new creature, notes: this.radius is temporary, in the final version it will be null, and then calculated based on food value
+      let newCreature = new creature([this.Child], (this.x + (this.radius * 3)), this.y, this.radius, null, this.dna)
+      return this.newCreature;
+    }
+
+  
+
+    
+  }
+
+
+
+  //collision system
+  function collide() {
+    for (let i = 0; i < allCreatures.length; i++) {
+      for (let j = i + 1; j < allCreatures.length; j++) {
+        let c1 = allCreatures[i];
+        let c2 = allCreatures[j];
+  
+        // Calculate distance between centers
+        let dx = c2.x - c1.x;
+        let dy = c2.y - c1.y;
+        let distance = Math.sqrt(dx*dx + dy*dy);
+
+        // Check if objects are colliding
+        if (distance < c1.radius + c2.radius) {
+
+          // Calculate direction and magnitude of force
+          let angle = Math.atan2(dy, dx);
+          let force = (c1.radius + c2.radius - distance) / 2;
+
+          // Apply force to each object
+          c1.vx -= force * Math.cos(angle);
+          c1.vy -= force * Math.sin(angle);
+          c2.vx += force * Math.cos(angle);
+          c2.vy += force * Math.sin(angle);
+        }
+      }
+    }
+  }
+
+
+
+
+  const InitialDNA = [1, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 1, 2, 3, 4, 1, 2, 4, 1, 1, 2, 4, 2, 1, 2, 4, 3];
+  
+  let c1 = new creature(1, 5000, 5000, 20, null, InitialDNA, 1)
+    
+    
+  function timestep() {
+  //ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //drawBackground();
+
+  allCreatures.forEach(function(creature) {
+    creature.move();
+    creature.draw(ctx);
+  });
+
+  
+  collide();
+  requestAnimationFrame(timestep);
+}
+
+// Call the timestep function to start the animation
+requestAnimationFrame(timestep);
+    
+</script>
+</body>
+</html>
+    
